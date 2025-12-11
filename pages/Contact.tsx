@@ -1,14 +1,71 @@
 import React, { useState } from 'react';
 
 const Contact: React.FC = () => {
-  const [formStatus, setFormStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
+  // --- Form state & validation ---
+  const [date, setDate] = useState<string>('');
+  const [time, setTime] = useState<string>('');
+  const [service, setService] = useState<string>('');
+  const [name, setName] = useState<string>('');
+  const [phone, setPhone] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [errors, setErrors] = useState<{
+    date?: string;
+    service?: string;
+    name?: string;
+    phone?: string;
+    message?: string;
+  }>({});
+
+  const validate = () => {
+    const newErrors: typeof errors = {};
+
+    if (!name.trim()) newErrors.name = 'Please enter your name.';
+    // Basic phone validation: digits, allow leading +, length 7-15
+    const phoneValue = phone.replace(/\s+/g, '');
+    if (!phoneValue) newErrors.phone = 'Please enter your phone number.';
+    else if (!/^\+?\d{7,15}$/.test(phoneValue)) newErrors.phone = 'Enter a valid phone number (digits only).';
+
+    if (!service || service === 'Select Service...') newErrors.service = 'Please select a service.';
+    if (!date) newErrors.date = 'Please pick a date.';
+    if (!message.trim()) newErrors.message = 'Please add a message or details.';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const phoneDigitsFrom = (raw: string) => {
+    // keep leading + if present, otherwise digits only
+    const plus = raw.trim().startsWith('+') ? '+' : '';
+    const digits = raw.replace(/[^\d]/g, '');
+    return plus + digits;
+  };
+
+  const handleSubmit: React.FormEventHandler = (e) => {
     e.preventDefault();
-    setFormStatus('sending');
-    setTimeout(() => {
-        setFormStatus('sent');
-    }, 1500);
+
+    if (!validate()) {
+      return;
+    }
+
+    const phoneForMsg = phone.startsWith('+') ? phone : phoneDigitsFrom(phone);
+    const formattedMessage = [
+      'Hello! Thank you for contacting DR Makeovers 😊',
+      'Here are the booking details:',
+      `• Name: ${name}`,
+      `• Phone: ${phoneForMsg}`,
+      `• Service: ${service}`,
+      `• Preferred Date: ${date}${time ? ` ${time}` : ''}`,
+      `• Message: ${message}`,
+      '',
+      'Please confirm, and we'll get back to you shortly ❤️'
+    ].join('\n');
+
+    // Replace with your WhatsApp phone number (international format, no +). Current: 919553673711
+    const myNumber = '919553673711';
+    const url = `https://wa.me/${myNumber}?text=${encodeURIComponent(formattedMessage)}`;
+    window.open(url, '_blank');
   };
 
   return (
@@ -38,41 +95,93 @@ const Contact: React.FC = () => {
             </div>
         </div>
 
-        {/* Form */}
-        <div className="bg-dark-800 p-8 md:p-12 border border-gray-800">
-             <h3 className="text-2xl font-serif text-white mb-8">Send a Message</h3>
-             {formStatus === 'sent' ? (
-                 <div className="text-center py-20">
-                     <div className="text-gold-500 text-5xl mb-4">✓</div>
-                     <h4 className="text-2xl text-white mb-2">Message Sent</h4>
-                     <p className="text-gray-400">Thank you for contacting us. We will get back to you shortly.</p>
-                     <button onClick={() => setFormStatus('idle')} className="mt-8 text-sm text-gray-500 hover:text-white underline">Send another</button>
-                 </div>
-             ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-xs uppercase text-gray-400 mb-2">First Name *</label>
-                            <input required type="text" className="w-full bg-transparent border border-gray-600 p-3 text-white focus:border-gold-500 focus:outline-none transition" />
-                        </div>
-                        <div>
-                            <label className="block text-xs uppercase text-gray-400 mb-2">Last Name *</label>
-                            <input required type="text" className="w-full bg-transparent border border-gray-600 p-3 text-white focus:border-gold-500 focus:outline-none transition" />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-xs uppercase text-gray-400 mb-2">Email *</label>
-                        <input required type="email" className="w-full bg-transparent border border-gray-600 p-3 text-white focus:border-gold-500 focus:outline-none transition" />
-                    </div>
-                    <div>
-                        <label className="block text-xs uppercase text-gray-400 mb-2">Message</label>
-                        <textarea required rows={5} className="w-full bg-transparent border border-gray-600 p-3 text-white focus:border-gold-500 focus:outline-none transition"></textarea>
-                    </div>
-                    <button disabled={formStatus === 'sending'} type="submit" className="w-full py-4 bg-gold-600 text-white hover:bg-gold-500 transition duration-300 uppercase text-sm tracking-widest font-bold disabled:opacity-50">
-                        {formStatus === 'sending' ? 'Sending...' : 'Send Message'}
-                    </button>
-                </form>
-             )}
+        {/* Booking Form */}
+        <div className="bg-dark-800 p-8 border border-gray-700">
+          <h3 className="text-2xl font-serif text-white mb-6 text-center">Request an Appointment</h3>
+          <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                type="date"
+                className="w-full bg-dark-900 border border-gray-600 p-3 text-white focus:border-gold-500 focus:outline-none"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                aria-invalid={!!errors.date}
+              />
+              <input
+                type="time"
+                className="w-full bg-dark-900 border border-gray-600 p-3 text-white focus:border-gold-500 focus:outline-none"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <select
+                className="w-full bg-dark-900 border border-gray-600 p-3 text-white focus:border-gold-500 focus:outline-none"
+                value={service}
+                onChange={(e) => setService(e.target.value)}
+                aria-invalid={!!errors.service}
+              >
+                <option>Select Service...</option>
+                <option>Hair Cut</option>
+                <option>Coloring</option>
+                <option>Facial</option>
+              </select>
+              {errors.service && <p className="text-red-400 text-sm mt-1">{errors.service}</p>}
+            </div>
+
+            <div>
+              <input
+                type="text"
+                placeholder="Your Name"
+                className="w-full bg-dark-900 border border-gray-600 p-3 text-white focus:border-gold-500 focus:outline-none"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                aria-invalid={!!errors.name}
+              />
+              {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
+            </div>
+
+            <div>
+              <input
+                type="tel"
+                placeholder="Your Phone"
+                className="w-full bg-dark-900 border border-gray-600 p-3 text-white focus:border-gold-500 focus:outline-none"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                aria-invalid={!!errors.phone}
+              />
+              {errors.phone && <p className="text-red-400 text-sm mt-1">{errors.phone}</p>}
+            </div>
+
+            <div>
+              <input
+                type="email"
+                placeholder="Your Email"
+                className="w-full bg-dark-900 border border-gray-600 p-3 text-white focus:border-gold-500 focus:outline-none"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <textarea
+                placeholder="Message"
+                className="w-full bg-dark-900 border border-gray-600 p-3 text-white focus:border-gold-500 focus:outline-none min-h-[120px]"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                aria-invalid={!!errors.message}
+              />
+              {errors.message && <p className="text-red-400 text-sm mt-1">{errors.message}</p>}
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 bg-gold-600 text-white font-bold hover:bg-gold-500 transition"
+            >
+              REQUEST BOOKING
+            </button>
+          </form>
         </div>
       </div>
     </div>
