@@ -10,11 +10,11 @@ const Footer: React.FC = () => {
         
         <div className="flex flex-col md:flex-row justify-center items-center gap-8 mb-12 text-gray-400 font-light">
           <p className="text-lg">+91 95536 73711</p>
-          <p className="text-lg">contact@drmakeovers.com</p>
+          <p className="text-lg">Divyareddy.bodanapu@gmail.com</p>
         </div>
 
         <p className="max-w-xl mx-auto text-gray-400 text-sm mb-12 leading-relaxed">
-          1st Floor, Stone Ridge Center, Bikanervala opp street, above ICICI Bank, Kondapur, Whitefields.
+             Lb ngr Chintalkunta check post
         </p>
 
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-600">
